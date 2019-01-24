@@ -39,14 +39,41 @@ def equatorialToCartesianCoords(_object, _observer):
     Object is given with its right ascension and declination for epoch j2000.
     Observer is given with its latitude, longitude and time parameters.
 
-    Returns 2d (x, y) coordinates for display onthe canvas
+    Returns x, y, z coordinates for display on the canvas
     see:
     http://www.geoastro.de/elevaz/basics/index.htm
     
-    
+    XY is the plane of the equator
+    Z points towards the zenith
     """
     # TODO : add observer and time
-    x = cos(_object._ra) * cos(_object._dec)
-    y = sin(_object._dec) * cos(_object._ra)
-    return (x, y)
+    ra_degrees = _object._ra * 15
+    x = _object._distance * cos(ra_degrees) * cos(_object._dec)
+    y = _object._distance * sin(_object._dec) * cos(ra_degrees)
+    z = _object._distance * sin(_object._distance)
+    return (x, y, z)
     
+
+def equatorialToPolarCoords(_object,_observer):
+    """
+    Celestial zenith is at the center of the canvas
+    By default North is up
+    """
+    # right ascension:
+    pass
+    # declination:
+
+
+def rightAscensionToAzimut(ra):
+    pass
+
+# Time -------------------------------------------------------------------------
+def getSideralDay(year, month, day, UT):
+    """
+    Works for march 1900 to february 2100
+    """
+    sd = 367 * y - 7 * ( + (m + 9) / 12) / 4 + 275 * m / 9 + d - 75030
+    return d + UT / 24.0
+
+def getSideralTime():
+    pass

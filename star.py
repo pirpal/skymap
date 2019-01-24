@@ -34,7 +34,7 @@ class SkyObject:
         return parsecToLightYear(self._distance)
 
     def __str__(self):
-        return "{}\nRA:  {}\nDEC: {}\n{} pc ({} ly)".format(
+        return "{}\nRA:  {}\nDEC: {}\n{} pc ({} ly)\n".format(
             self._bay_flam_id,
             round(self._ra, 3),
             round(self._dec, 3),

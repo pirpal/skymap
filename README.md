@@ -1,2 +1,5 @@
-README.md
-=========
+Skymap
+======
+
+
+# Python sky map
