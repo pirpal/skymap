@@ -18,11 +18,19 @@ class App(tk.Tk):
         #print(self.stars[119434])
         # TODO: give access to observer modifications in space and time
         # DEBUG
-        cygnus = self.initConstellationFromName("Cyg")
+
+        #cygnus = self.initConstellationFromName("Cyg")
         #print(cygnus)
         #for star in cygnus._stars:
             #print(star)
             #self.draw(star)
+
+        orion = self.initConstellationFromName(" Ori")
+        #print(orion)
+        for star in orion._stars:
+            print(star)
+            self.draw(star)
+
         proxima_centauri = SkyObject({
             "star_id": 70667,
             "hip_id": 70890,
@@ -46,7 +54,11 @@ class App(tk.Tk):
             "vz": "" 
         })
         print(proxima_centauri)
-        self.draw(proxima_centauri)
+        #self.draw(proxima_centauri)
+        #test = polarAzimuthalProjection(proxima_centauri)
+        #print("sterographic projection:\nx: {}\ny: {}".format(test[0], test[1]))
+        test = equidistantCylindrical(proxima_centauri)
+        print("Equidistant cylindrical:\nx: {}\ny: {}".format(test[0], test[1]))
 
     def initUI(self):
         self.geometry("{}x{}+{}+{}".format(WIDTH, HEIGHT, POS_X, 0))
@@ -71,22 +83,23 @@ class App(tk.Tk):
                 
     
     def draw(self, star):
-        cartesian_coords = equatorialToCartesianCoords(star, self.observer)
+        #cartesian_coords = equatorialToCartesianCoords(star, self.observer)
+        #cartesian_coords = polarAzimuthalProjection(star)
+        cartesian_coords = azimuthalProjection(star)
+        #cartesian_coords = equidistantCylindrical(star)
         # DEBUG
-        print("x: {} \ny: {}\nz: {}".format(
+        print("x: {} \ny: {}".format(
             cartesian_coords[0],
             cartesian_coords[1],
-            cartesian_coords[2]
             )
         )
-        x = cartesian_coords[0] * WIDTH / 180
-        y = cartesian_coords[1] * HEIGHT / 180
-        print("new_x: {}\nnew_y: {}".format(x, y))
+        x = cartesian_coords[0]
+        y = cartesian_coords[1]
         self.can.create_oval(
-            cartesian_coords[0] - 1,
-            cartesian_coords[0] - 1,
-            cartesian_coords[1] + 1,
-            cartesian_coords[1] + 1,
+            x - 1,
+            x - 1,
+            y + 1,
+            y + 1,
             outline="white",
             fill="white",
             tag=star._star_id

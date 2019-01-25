@@ -1,8 +1,8 @@
 #!usr/bin/python3
 
-
+from constants import WIDTH, HEIGHT, CENTER_X, CENTER_Y
 from re import compile, match, search
-from math import cos, sin
+from math import cos, sin, sqrt, pi
 
 """
 Skymap API
@@ -16,13 +16,11 @@ def parsecToLightYear(p):
 def lightYearToParsec(ly):
     return ly * 0.3066
 
-
 # Parsing ----------------------------------------------------------------------
-
 def getRightAscension(_str):
     """
-    Returns HourAngle instance
-    NOTE : not needed for HYG as RA eand DEC are given in degrees
+    getRightAscension("16h2m54s")
+    => HourAngle(16, 2, 54)
     """
     regex = compile("[\+\-](\d+.\d+)h(\d+.\d+)m(\d)+s" )
     match = search(regex, _str)
@@ -40,11 +38,7 @@ def equatorialToCartesianCoords(_object, _observer):
     Observer is given with its latitude, longitude and time parameters.
 
     Returns x, y, z coordinates for display on the canvas
-    see:
-    http://www.geoastro.de/elevaz/basics/index.htm
-    
-    XY is the plane of the equator
-    Z points towards the zenith
+    http://www.geoastro.de/elevaz/basics/index.html
     """
     # TODO : add observer and time
     ra_degrees = _object._ra * 15
@@ -54,18 +48,72 @@ def equatorialToCartesianCoords(_object, _observer):
     return (x, y, z)
     
 
-def equatorialToPolarCoords(_object,_observer):
+def stereographicProjection(_object):
     """
-    Celestial zenith is at the center of the canvas
-    By default North is up
+    see http://www.astro.ro/~roaj/26_3/19-dvasilca.pdf
+    r = radius
+    sa = star right ascension
+    sd = star declination
+    ma = map projection pole right ascension
+    md = map projection pole declination
+    
+    x = (2 * r * (cos(ma) * sin(sa) - sin(ma) * cos(sa) * cos(sd))) / (1 + (sin(ma) * sin(sa) + cos(ma) * cos(sa) * cos(sd)))
+    y = (2 * r * cos(sa) * sin(sd)) / (1 + ( sin(ma) * sin(sa) + cos(ma) * cos(sa) * cos(sd)))
+     
     """
-    # right ascension:
-    pass
-    # declination:
+    a = _object._ra * 15 # get right ascension in degrees
+    d = _object._dec
+    r = 1 # radius is not relevant
+    x = (-2 * r * cos(a) * cos(d)) / (1 + sin(a))
+    y = (2 * r * cos(a) * sin(d)) / (1 + sin(a))
+    return (x, y)
 
+def polarAzimuthalProjection(_object):
+    a = _object._ra * 15
+    d = _object._dec
+    r = 1
+    x = (-2 * r * cos(a) * cos(d)) / (1 + sin(a))
+    y = (2 * r * cos(a) * sin(d)) / (1 + sin(a))
+    return (x, y)
 
-def rightAscensionToAzimut(ra):
-    pass
+def azimuthalProjection(star):
+    """
+    https://www.projectpluto.com/project.htm
+    """
+    # Chart (canvas) center:
+    ra0 = CENTER_X
+    dec0 = CENTER_Y
+    # object coordinates in degrees:
+    ra = star._ra * 15
+    dec = star._dec
+    delta_ra = ra - CENTER_X
+    x1 = cos(dec) * sin(delta_ra)
+    y1 = sin(dec) * cos(dec0) - cos(dec) * cos(delta_ra) * sin(dec0)
+    # here we could set x, y = x1, y1 for an orthographic projection
+
+    # important : to save runtime, compute sines and cosines of ra0 and dec0
+    # before plotting any star
+    z1 = sin(dec) * sin(dec0) + cos(dec) * cos(dec0) * cos( delta_ra)
+    # scaling factor d for sterographic projection:
+    if z1 < -0.9:
+        d = 20 * sqrt((1 - 0.81) / (1.00001 - z1 * z1))
+    else:
+        d = 2 / (z1 + 1)
+
+    screen_height_degrees = 90
+    scale = HEIGHT * (180 / pi) / screen_height_degrees
+    
+    x = x1 * d
+    y = x1 * d
+
+    pixel_x = CENTER_X + x * scale
+    pixel_y = CENTER_Y + y * scale
+    return (pixel_x, pixel_y)
+
+def equidistantCylindrical(star):
+    x = ((star._ra * 15) - CENTER_X) / sin(CENTER_Y)
+    y = star._dec - CENTER_Y
+    return (x, y)
 
 # Time -------------------------------------------------------------------------
 def getSideralDay(year, month, day, UT):
